@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Otter Flow — Lightweight feedback for teams that listen</title>
+  <link rel="icon" type="image/png" href="otterflow_favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #ffffff;
+      --fg: #0b0b0c;
+      --muted: #6c6f76;
+      --accent: #1F7AE0;
+      --ring: rgba(31,122,224,.15);
+      --shadow: 0 10px 30px rgba(0,0,0,.06);
+      --radius: 20px;
+      --pad: clamp(16px, 3vw, 40px);
+      --lh: 1.25;
+      --logo-size: clamp(90px, 14vw, 140px);
+    }
+
+    * { box-sizing: border-box; }
+    html,body { height: 100%; background: var(--bg); color: var(--fg); }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Shell */
+    .deck {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .deck::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(31,122,224,.08), transparent 50%),
+                  radial-gradient(circle at 80% 10%, rgba(31,122,224,.05), transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header.brand {
+      position: absolute;
+      top: var(--pad);
+      left: var(--pad);
+      display: flex;
+      align-items: center;
+      z-index: 11;
+      user-select: none;
+    }
+    header.brand img {
+      width: var(--logo-size);
+      height: var(--logo-size);
+      display: block;
+      filter: drop-shadow(0 3px 8px rgba(0,0,0,.12));
+    }
+
+    /* Slides */
+    .slides {
+      position: absolute; inset: 0;
+      display: grid; grid-auto-flow: column; grid-auto-columns: 100%;
+      transition: transform .7s cubic-bezier(.22,.61,.36,1);
+      will-change: transform;
+      z-index: 1;
+    }
+
+    section.slide {
+      display: grid;
+      grid-template-rows: 1fr auto 1fr;
+      min-height: 100dvh;
+      padding: calc(var(--pad) * 2) var(--pad);
+    }
+
+    .slide .content {
+      align-self: center;
+      max-width: min(1080px, 88vw);
+      margin: 0 auto;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(22px, 6vw, 60px);
+      border: 1px solid rgba(12,13,16,.06);
+    }
+
+    h1 {
+      font-size: clamp(34px, 6.3vw, 74px);
+      line-height: var(--lh);
+      letter-spacing: -0.02em;
+      margin: 0 0 .5em 0;
+      font-weight: 700;
+    }
+    .eyebrow {
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(12,13,16,.6);
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    p.lead {
+      font-size: clamp(16px, 2.1vw, 22px);
+      color: #1a1b1e;
+      margin: 0 0 10px 0;
+      max-width: 60ch;
+    }
+    .muted { color: var(--muted); }
+
+    /* Pain stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(14px, 2.2vw, 28px);
+      margin-top: clamp(16px, 2.4vw, 28px);
+      justify-items: center;
+    }
+    .stat {
+      border: 1px solid rgba(12,13,16,.08);
+      border-radius: 14px;
+      padding: clamp(12px, 2.2vw, 18px);
+      background: linear-gradient(180deg, #fff, #fafbfc);
+      width: min(320px, 100%);
+    }
+    .stat .num {
+      font-size: clamp(26px, 4.2vw, 42px);
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .stat .desc { color: #22252a; font-size: clamp(12px, 1.6vw, 15px); }
+    .stat .source {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 11px;
+      color: rgba(12,13,16,.45);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(12,13,16,.1);
+      line-height: 1.2;
+    }
+    .stat .source:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Footer */
+    .progress-line {
+      position: absolute;
+      bottom: calc(var(--pad) + 64px);
+      left: var(--pad);
+      right: var(--pad);
+      height: 2px;
+      background: rgba(12,13,16,.08);
+      border-radius: 999px;
+      overflow: hidden;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .progress-line span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--accent);
+      transition: width .6s cubic-bezier(.22,.61,.36,1);
+    }
+
+    footer.meta {
+      position: absolute;
+      bottom: var(--pad);
+      left: var(--pad);
+      right: var(--pad);
+      display: flex; align-items: center; justify-content: space-between;
+      color: rgba(12,13,16,.45);
+      font-size: 13px;
+      user-select: none;
+      z-index: 10;
+    }
+    .helper-text {
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: rgba(12,13,16,.4);
+    }
+    .pager {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #fff; border: 1px solid rgba(12,13,16,.08);
+      border-radius: 999px; padding: 8px 12px;
+      box-shadow: var(--shadow);
+    }
+    .btn {
+      width: 32px; height: 32px; display: grid; place-items: center;
+      border-radius: 999px; border: 1px solid rgba(12,13,16,.08);
+      background: #fff; cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .btn:focus-visible { outline: 3px solid var(--ring); }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.06); border-color: rgba(12,13,16,.18); }
+
+    .index {
+      font-variant-numeric: tabular-nums;
+      padding-left: 8px;
+    }
+
+    /* Animations (honors reduced motion) */
+    @media (prefers-reduced-motion: reduce) {
+      .slides { transition: none; }
+      .btn { transition: none; }
+    }
+
+    /* Small screens tweaks */
+    @media (max-width: 720px) {
+      .stats { grid-template-columns: 1fr; }
+      .stat { width: min(360px, 100%); }
+      .slide .content { padding: clamp(18px, 6vw, 28px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="deck" aria-live="polite">
+    <header class="brand">
+      <img src="otterflow_logo.png" alt="Otter Flow logo">
+    </header>
+    <div class="progress-line" aria-hidden="true"><span id="progress-fill"></span></div>
+
+    <div class="slides" id="slides">
+
+      <!-- Slide 1: Target -->
+      <section class="slide" data-title="Target">
+        <div></div>
+        <div class="content">
+          <div class="eyebrow">Target</div>
+          <h1>Built for teams that move fast and listen closer.</h1>
+          <p class="lead">
+            Otter Flow helps modern product teams, small studios, and indie builders stay connected
+            to what users really feel, without noisy systems or endless forms.
+          </p>
+          <p class="muted">Quiet by default. Powerful when you need it.</p>
+        </div>
+        <div></div>
+      </section>
+
+      <!-- Slide 2: Pain -->
+      <section class="slide" data-title="Pain">
+        <div></div>
+        <div class="content">
+          <div class="eyebrow">Pain</div>
+          <h1>Feedback chaos slows every roadmap.</h1>
+          <p class="lead">
+            Notes, DMs, and spreadsheets scatter context. Signals are everywhere, but hard to catch.
+          </p>
+
+       <div class="stats" aria-label="Problem facts">
+  <div class="stat">
+    <div class="num">52%</div>
+    <div class="desc">Stopped buying after a bad experience.</div>
+    <a class="source" href="https://www.pwc.com/us/en/services/consulting/business-transformation/library/2025-customer-experience-survey.html" target="_blank" rel="noopener">PwC 2025 CX Survey</a>
+  </div>
+  <div class="stat">
+    <div class="num">81%</div>
+    <div class="desc">Say data silos block progress and action.</div>
+    <a class="source" href="https://www.salesforce.com/news/stories/connectivity-report-announcement-2024/" target="_blank" rel="noopener">Salesforce Connectivity Report</a>
+  </div>
+  <div class="stat">
+    <div class="num">15–25%</div>
+    <div class="desc">Typical email survey response rate — feedback gets missed.</div>
+    <a class="source" href="https://surveysparrow.com/blog/survey-response-rate-benchmarks/" target="_blank" rel="noopener">SurveySparrow Benchmarks</a>
+  </div>
+</div>
+
+
+          <p class="muted" style="margin-top:14px">When the signal is messy, the next release drifts.</p>
+        </div>
+        <div></div>
+      </section>
+
+      <!-- Slide 3: Solution -->
+      <section class="slide" data-title="Solution">
+        <div></div>
+        <div class="content">
+          <div class="eyebrow">Solution</div>
+          <h1>Capture every signal. Build what users actually want.</h1>
+          <p class="lead">
+            Drop in a small <span style="color:var(--accent);font-weight:600;">embeddable widget</span> wherever your users are.
+            Their thoughts flow straight into a clean dashboard - no noise, no chasing.
+            Just clarity on what to build next.
+          </p>
+          <p class="muted">One snippet. Instant signal. A roadmap you can trust.</p>
+        </div>
+        <div></div>
+      </section>
+
+    </div>
+
+    <footer class="meta">
+      <div class="helper-text">Press → or tap to continue</div>
+      <div class="pager" role="group" aria-label="Slide navigation">
+        <button class="btn" id="prev" aria-label="Previous slide" title="Previous">←</button>
+        <button class="btn" id="next" aria-label="Next slide" title="Next">→</button>
+        <span class="index" id="index">01 / 03</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      const slides = document.getElementById('slides');
+      const total = slides.children.length;
+      let i = 0;
+
+      const indexEl = document.getElementById('index');
+      const progressFill = document.getElementById('progress-fill');
+      const update = () => {
+        slides.style.transform = `translate3d(${i * -100}%, 0, 0)`;
+        indexEl.textContent = String(i + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+        const progressPercent = total > 1 ? (i / (total - 1)) * 100 : 100;
+        progressFill.style.width = `${progressPercent}%`;
+        document.title = 'Otter Flow — ' + slides.children[i].dataset.title;
+      };
+
+      const next = () => { if (i < total - 1) { i++; update(); } };
+      const prev = () => { if (i > 0) { i--; update(); } };
+
+      document.getElementById('next').addEventListener('click', next);
+      document.getElementById('prev').addEventListener('click', prev);
+
+      window.addEventListener('keydown', (e) => {
+        if (['ArrowRight','PageDown',' '].includes(e.key)) { e.preventDefault(); next(); }
+        if (['ArrowLeft','PageUp'].includes(e.key))          { e.preventDefault(); prev(); }
+      }, { passive:false });
+
+      // Basic swipe for touch
+      let startX = null;
+      slides.addEventListener('touchstart', (e)=> startX = e.touches[0].clientX, {passive:true});
+      slides.addEventListener('touchend', (e)=>{
+        if (startX === null) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 50) (dx < 0 ? next() : prev());
+        startX = null;
+      }, {passive:true});
+
+      update();
+    })();
+  </script>
+</body>
+</html>
